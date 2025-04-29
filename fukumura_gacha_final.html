@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>譜久村聖1stシングル発売記念モ◯ガチャ練習用</title>
+<style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 30px; background-color: #000; color: #fff; }
+    .video-frame {
+        width: 100%; max-width: 800px; aspect-ratio: 16/9;
+        background: #000; position: relative; overflow: hidden;
+        margin: 0 auto 60px; display: block;
+    }
+    .video-frame video { width: 100%; height: 100%; object-fit: cover; z-index: 0; position: relative; }
+    .overlay {
+        position: absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+        font-size:30px; font-weight:bold; color:#fff; text-shadow:2px 2px 4px #000;
+        white-space:pre-line; pointer-events:none; opacity:0; transition:opacity 1s; z-index:2;
+    }
+    .counter-overlay {
+        position:absolute; top: 10px; right: 10px; left: auto; transform: none;
+        background:rgba(0,0,0,0.6); color:#fff; padding:6px 12px; border-radius:8px; font-size:16px; z-index:2;
+    }
+    .video-controls {
+        position:absolute; bottom:-60px; left:50%; transform:translateX(-50%); z-index:2;
+    }
+    .video-controls button {
+        margin:0 8px; padding:8px 16px; font-size:14px; cursor:pointer;
+    }
+    .white-text { color:white; }
+    .gold-text  { color:gold; }
+    .rainbow-text {
+        background: linear-gradient(to right, red, orange, yellow, green, cyan, blue, violet);
+        -webkit-background-clip: text; color:transparent;
+        animation: rainbow 3s infinite;
+    }
+    #history {
+        display:none; margin:20px auto; max-width:600px;
+        background:rgba(255,255,255,0.1); padding:10px; border-radius:10px; text-align:left;
+    }
+#collection { max-width:800px; margin:40px auto 20px; color:#fff; }
+.grid { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
+.grid .item img { width:100px; height:auto; border-radius:8px; }
+.grid .locked img { filter: brightness(0.3); }
+</style>
+</head>
+<body>
+
+<h1>🌟🎉 譜久村聖 1stシングル発売記念 モ◯ガチャ 練習用 🎉🌟</h1>
+
+<div class="video-frame">
+  <video id="gachaVideo" src="scene_1.mp4" autoplay loop muted playsinline></video>
+  <div id="overlay" class="overlay"></div>
+  <div id="counter" class="counter-overlay"></div>
+  <div class="video-controls">
+    <button id="showHistoryButton">獲得アイテム一覧</button>
+    <button id="resetButton">リセット</button>
+  </div>
+</div>
+
+<div id="history"></div>
+
+<div id="collection">
+  <h2>図鑑</h2>
+  <div class="grid" id="zukanGrid"></div>
+</div>
+
+<script>
+
+  const members = ["譜久村聖"];
+  const rarities = [ { type:"N", rate:65 }, { type:"R", rate:30 }, { type:"SR", rate:5 } ];
+  const itemsConfig = {
+  N: [
+    "N_缶バッジA", "N_缶バッジB", "N_缶バッジC", "N_缶バッジD",
+    "N_コレクションステッカーセットA", "N_コレクションステッカーセットB",
+    "N_コレクションステッカーセットC", "N_コレクションステッカーセットD"
+  ],
+  R: [
+    "R_ダイカットキーホルダーA", "R_ダイカットキーホルダーB", "R_ダイカットキーホルダーC", "R_ダイカットキーホルダーD",
+    "R_スクエアキーホルダーA", "R_スクエアキーホルダーB", "R_スクエアキーホルダーC", "R_スクエアキーホルダーD",
+    "R_ミニポーチA", "R_ミニポーチB"
+  ],
+  SR: [
+    "SR_BIGアクリルスタンドA", "SR_BIGアクリルスタンドB", "SR_BIGアクリルスタンドC", "SR_BIGアクリルスタンドD",
+    "SR_スマホスタンド"
+  ]
+};
+  let counts = { SR:0, R:0, N:0 };
+
+  let history = [];
+  let skipPending = false;
+
+  const videoEl   = document.getElementById("gachaVideo");
+  const overlayEl = document.getElementById("overlay");
+  const counterEl = document.getElementById("counter");
+  const histEl    = document.getElementById("history");
+
+  function updateCounter(){
+    counterEl.innerText = `SR:${counts.SR}個 / R:${counts.R}個 / N:${counts.N}個`;
+  }
+
+  function getRandomRarity(){
+    let r = Math.random()*100, sum = 0;
+    for(let x of rarities){ sum += x.rate; if(r <= sum) return x.type; }
+    return rarities[rarities.length-1].type;
+  }
+
+  function drawGacha(){
+    if (skipPending) return; // 連続ガチャ防止
+    const member = members[0];
+    const rarity = getRandomRarity();
+    const item = itemsConfig[rarity][Math.floor(Math.random()*itemsConfig[rarity].length)];
+    const imageName = item
+    const imageBasePath = "images/";
+    const imagePath = `${imageBasePath}${imageName}.png`;
+    const isKeyholder = item.includes("キーホルダー");
+const imgWidth = isKeyholder ? "100%" : "60%";
+const displayHTML = `
+      <img src="${imagePath}" style="max-width:${imgWidth}; height:auto; display:block; margin:auto; margin-bottom:6px; margin-top:-30px;">
+      <div class="white-text" style="margin-top:-10px; font-size:22px;">${item.replace(/^[A-Z]+_/, "")}</div>
+    `;
+
+    skipPending = true;
+    overlayEl.style.opacity = 0;
+    overlayEl.innerHTML = "";
+
+    videoEl.src = "scene_2.mp4";
+    videoEl.loop = false;
+    videoEl.play();
+
+    
+
+    const showResult = () => {
+      videoEl.src = rarity === "SR" ? "scene_3_rarity_A.mp4" :
+                    rarity === "R"  ? "scene_3_rarity_B.mp4" :
+                                      "scene_3_rarity_C.mp4";
+      videoEl.loop = true;
+      videoEl.play();
+      setTimeout(() => {
+        overlayEl.innerHTML = displayHTML;
+        overlayEl.style.opacity = 1;
+        counts[rarity]++;
+        history.push({member, rarity, item});
+        updateCounter();
+saveToStorage();
+updateZukan();
+updateCounter();
+showZukanCounts();
+        skipPending = false;
+      }, 200);
+    };
+
+    videoEl.onended = () => {
+  showResult();
+  videoEl.onended = null;
+};
+
+    
+    
+    
+  }
+
+  videoEl.addEventListener("click", () => {
+  if (videoEl.src.includes("scene_1")) {
+    drawGacha();
+  } else {
+    overlayEl.innerHTML = "";
+    overlayEl.style.opacity = 0;
+    videoEl.src = "scene_1.mp4";
+    videoEl.loop = true;
+    videoEl.play();
+    skipPending = false;
+  }
+});
+  document.getElementById("showHistoryButton").addEventListener("click", () => {
+    histEl.style.display = histEl.style.display === "block" ? "none" : "block";
+    if(histEl.style.display === "block"){
+      histEl.innerHTML = history.map(h => {
+        const cls = h.rarity === "SR" ? "rainbow-text" : h.rarity === "R" ? "gold-text" : "white-text";
+        return `<div class="${cls}">${h.member}: ${h.item.replace(/^[A-Z]+_/, "")}</div>`;
+      }).join("");
+    }
+  });
+  document.getElementById("resetButton").addEventListener("click", () => {
+  counts = { SR:0, R:0, N:0 };
+  history = [];
+  updateCounter();
+  histEl.style.display = "none";
+  histEl.innerHTML = "";
+  updateZukan();
+  saveToStorage();
+});
+
+
+  updateCounter();
+updateZukan();
+function showZukanCounts() {
+  const grid = document.querySelector('#zukanGrid');
+  if (!grid) return;
+  const ownedCounts = {};
+  history.forEach(h => {
+    const key = `${h.rarity}_${h.item}`;
+    ownedCounts[key] = (ownedCounts[key] || 0) + 1;
+  });
+  grid.querySelectorAll(".item img").forEach(img => {
+    const key = img.src.split('/').pop().replace(/\.png$/, '').replace(/_/g, '_');
+    const count = ownedCounts[key] || 0;
+    const label = document.createElement("div");
+    label.style.fontSize = "12px";
+    label.style.color = "#ccc";
+    label.style.marginTop = "4px";
+    label.innerText = `x${count}`;
+    img.parentNode.appendChild(label);
+  });
+}
+function saveToStorage(){
+  localStorage.setItem("gacha_history", JSON.stringify(history));
+  localStorage.setItem("gacha_counts", JSON.stringify(counts));
+}
+function loadFromStorage(){
+  const h = localStorage.getItem("gacha_history");
+  const c = localStorage.getItem("gacha_counts");
+  if (h) history = JSON.parse(h);
+  if (c) counts = JSON.parse(c);
+}
+function updateZukan(){
+  const grid = document.getElementById("zukanGrid");
+  const owned = new Set(history.map(h => `${h.rarity}_${h.item}`));
+  let html = "";
+  for (const rarity of ["SR", "R", "N"]) {
+    for (const item of itemsConfig[rarity]) {
+      const key = `${rarity}_${item}`;
+      const file = item;
+      const locked = owned.has(key) ? "" : "locked";
+      html += `<div class="item ${locked}"><img src=\"${imageBasePath}${file}.png\" alt="${key}"></div>`;
+    }
+  }
+  document.getElementById("zukanGrid").innerHTML = html;
+  showZukanCounts();
+}
+loadFromStorage();
+updateZukan();
+</script>
+
+</body>
+</html>
