@@ -1,0 +1,212 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>譜久村聖1stシングル発売記念モ◯ガチャ練習用</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; padding: 30px; background-color: #000; color: #fff; }
+  .video-frame {
+    width: 100%; max-width: 800px; aspect-ratio: 16/9;
+    background: #000; position: relative; overflow: hidden;
+    margin: 0 auto 20px; display: block;
+  }
+  .video-frame video { width: 100%; height: 100%; object-fit: cover; z-index: 0; position: relative; }
+  .overlay {
+    position: absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+    font-size:30px; font-weight:bold; color:#fff; text-shadow:2px 2px 4px #000;
+    white-space:pre-line; pointer-events:none; opacity:0; transition:opacity 1s; z-index:2;
+  }
+  .counter-overlay {
+    position:absolute; top: 10px; right: 10px;
+    background:rgba(0,0,0,0.6); color:#fff; padding:6px 12px; border-radius:8px; font-size:16px; z-index:2;
+  }
+  .video-controls {
+    margin-top: 20px;
+    text-align: center;
+  }
+  .video-controls button {
+    margin:0 8px; padding:8px 16px; font-size:14px; cursor:pointer;
+  }
+  .history-grid {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    margin-top: 20px;
+  }
+  .history-grid .item {
+    width: 120px;
+    height: auto;
+    box-sizing: border-box;
+    text-align: center;
+  }
+  .history-grid .item img {
+    width: 100px;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+  }
+  .history-grid .item .label {
+    margin-top: 4px;
+    font-size: 13px;
+    color: #eee;
+  }
+  .video-overlay-clickarea {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 5;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<h1>🌟🎉 譜久村聖 1stシングル発売記念 モ◯ガチャ 練習用 🎉🌟</h1>
+
+<div class="video-frame">
+  <video id="gachaVideo" src="scene_1.mp4" autoplay loop muted playsinline></video>
+  <div id="overlay" class="overlay"></div>
+  <div id="counter" class="counter-overlay"></div>
+  <div class="video-overlay-clickarea" onclick="handleVideoClick()"></div>
+</div>
+
+<div class="video-controls">
+  <button id="showHistoryButton">獲得アイテム一覧</button>
+  <button id="resetButton">リセット</button>
+</div>
+
+<div id="history" style="display:none;"></div>
+
+<script>
+const imageBasePath = "images/";
+const members = ["譜久村聖"];
+const rarities = [ { type:"N", rate:65 }, { type:"R", rate:30 }, { type:"SR", rate:5 } ];
+const itemsConfig = {
+  N: ["N_BadgeA", "N_BadgeB", "N_BadgeC", "N_BadgeD", "N_StickerSetA", "N_StickerSetB", "N_StickerSetC", "N_StickerSetD"],
+  R: ["R_DiecutKeyholderA", "R_DiecutKeyholderB", "R_DiecutKeyholderC", "R_DiecutKeyholderD", "R_SquareKeyholderA", "R_SquareKeyholderB", "R_SquareKeyholderC", "R_SquareKeyholderD", "R_MiniPouchA", "R_MiniPouchB"],
+  SR: ["SR_BIGStandA", "SR_BIGStandB", "SR_BIGStandC", "SR_BIGStandD", "SR_SmartphoneStand"]
+};
+
+const itemNameMap = {
+  "N_BadgeA": "缶バッジA", "N_BadgeB": "缶バッジB", "N_BadgeC": "缶バッジC", "N_BadgeD": "缶バッジD",
+  "N_StickerSetA": "ステッカーセットA", "N_StickerSetB": "ステッカーセットB", "N_StickerSetC": "ステッカーセットC", "N_StickerSetD": "ステッカーセットD",
+  "R_DiecutKeyholderA": "ダイカットキーホルダーA", "R_DiecutKeyholderB": "ダイカットキーホルダーB", "R_DiecutKeyholderC": "ダイカットキーホルダーC", "R_DiecutKeyholderD": "ダイカットキーホルダーD",
+  "R_SquareKeyholderA": "スクエアキーホルダーA", "R_SquareKeyholderB": "スクエアキーホルダーB", "R_SquareKeyholderC": "スクエアキーホルダーC", "R_SquareKeyholderD": "スクエアキーホルダーD",
+  "R_MiniPouchA": "ミニポーチA", "R_MiniPouchB": "ミニポーチB",
+  "SR_BIGStandA": "BIGアクリルスタンドA", "SR_BIGStandB": "BIGアクリルスタンドB", "SR_BIGStandC": "BIGアクリルスタンドC", "SR_BIGStandD": "BIGアクリルスタンドD",
+  "SR_SmartphoneStand": "スマホスタンド"
+};
+
+let counts = { SR:0, R:0, N:0 };
+let history = [];
+
+const videoEl   = document.getElementById("gachaVideo");
+const overlayEl = document.getElementById("overlay");
+const counterEl = document.getElementById("counter");
+const histEl    = document.getElementById("history");
+
+function updateCounter() {
+  counterEl.innerText = `SR:${counts.SR}個 / R:${counts.R}個 / N:${counts.N}個`;
+}
+
+function getRandomRarity() {
+  let r = Math.random()*100, sum = 0;
+  for (let x of rarities) { sum += x.rate; if (r <= sum) return x.type; }
+  return rarities[rarities.length-1].type;
+}
+
+function handleVideoClick() {
+  if (videoEl.currentSrc.endsWith('scene_1.mp4')) drawGacha();
+  else {
+    overlayEl.innerHTML = "";
+    overlayEl.style.opacity = 0;
+    videoEl.src = 'scene_1.mp4';
+    videoEl.loop = true;
+    videoEl.play();
+  }
+}
+
+function drawGacha() {
+  const member = members[0];
+  const rarity = getRandomRarity();
+  const item = itemsConfig[rarity][Math.floor(Math.random()*itemsConfig[rarity].length)];
+  const imagePath = `${imageBasePath}${encodeURIComponent(item)}.png`;
+  const displayHTML = `
+    <img src="${imagePath}" style="max-width: 60%; display:block; margin:auto; margin-bottom:6px;">
+    <div class="white-text" style="margin-top:-10px; font-size:22px;">${itemNameMap[item]}</div>
+  `;
+
+  overlayEl.style.opacity = 0;
+  overlayEl.innerHTML = "";
+  videoEl.src = "scene_2.mp4";
+  videoEl.loop = false;
+  videoEl.play();
+
+  videoEl.onended = () => {
+    videoEl.src = rarity === "SR" ? "scene_3_rarity_A.mp4" :
+                  rarity === "R"  ? "scene_3_rarity_B.mp4" :
+                                    "scene_3_rarity_C.mp4";
+    videoEl.loop = true;
+    videoEl.play();
+    setTimeout(() => {
+      overlayEl.innerHTML = displayHTML;
+      overlayEl.style.opacity = 1;
+      counts[rarity]++;
+      history.push({ member, rarity, item });
+      updateCounter();
+    }, 300);
+  };
+}
+
+videoEl.addEventListener("click", () => {
+  if (videoEl.src.includes("scene_1")) {
+    drawGacha();
+  } else {
+    overlayEl.innerHTML = "";
+    overlayEl.style.opacity = 0;
+    videoEl.src = "scene_1.mp4";
+    videoEl.loop = true;
+    videoEl.play();
+  }
+});
+
+document.getElementById("showHistoryButton").addEventListener("click", () => {
+  histEl.style.display = histEl.style.display === "block" ? "none" : "block";
+  if (histEl.style.display === "block") {
+    const countMap = {};
+    history.forEach(h => {
+      countMap[h.item] = (countMap[h.item] || { count: 0, rarity: h.rarity });
+      countMap[h.item].count++;
+    });
+
+    const sortedItems = Object.entries(countMap).sort((a, b) => {
+      const order = { "SR": 0, "R": 1, "N": 2 };
+      const ra = a[1].rarity, rb = b[1].rarity;
+      if (ra !== rb) return order[ra] - order[rb];
+      return itemNameMap[a[0]].localeCompare(itemNameMap[b[0]], "ja");
+    });
+
+    histEl.innerHTML = '<div class="history-grid">' + sortedItems.map(([item, data]) => {
+      return `<div class="item">
+        <img src="${imageBasePath}${encodeURIComponent(item)}.png">
+        <div class="label">${itemNameMap[item]}</div>
+        <span>×${data.count}</span>
+      </div>`;
+    }).join("") + '</div>';
+  }
+});
+
+document.getElementById("resetButton").addEventListener("click", () => {
+  counts = { SR:0, R:0, N:0 };
+  history = [];
+  updateCounter();
+  histEl.innerHTML = "";
+  histEl.style.display = "none";
+});
+
+updateCounter();
+</script>
+</body>
+</html>
